@@ -1,0 +1,253 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+require(tidymodels)
+require(tidyverse)
+library(tidyverse)
+library(vip)
+```
+
+## Introduction to tidy models
+
+```{r}
+#The Data set which we are using is of House pricing and we are predicting House prices on basis of Rooms, Area, and other attributes.
+#We have extracted the data set from Kaggle "https://www.kaggle.com/code/burhanykiyakoglu/predicting-house-prices" after getting the data set we have cleaned the data set by removing null values and setting correct column names we handled all this in Excel.
+#once the Data set is cleaned we have loaded the data set into R-studio which is given below:
+
+House_pricing<-read_csv("C:/Users/Lenovo/Downloads/Housepricing/House.csv")
+glimpse(House_pricing)
+House_pricing%>%head()
+```
+
+```{r}
+# Here we are Splitting the data set in two parts one will be for Training data set and other will be for Testing purpose.
+# The proportion of dividing the data set into two parts is 60 by 40 60% data set will be for training and 40% data set will be for testing.
+# 1- Split the data by 60/40  is solved here
+set.seed(123)
+House_Pricing_datasplit=initial_split(House_pricing, prop=.6)
+test_data = testing(House_Pricing_datasplit)
+trained_data = training(House_Pricing_datasplit)
+count(trained_data)
+count(test_data)
+trained_data%>%head()
+test_data%>%head()
+```
+
+```{r}
+#Here we are training the model with our training data set which is our 60% of our actual data set.
+# Fit a linear model with the training data is solved here.
+my_model<-linear_reg()%>%
+              set_engine('lm')%>%
+              fit(price~ ., data = trained_data)
+my_model
+```
+
+```{r}
+# Here we are testing our data set with test data set.
+# Here We train our model with test dataset the 40% of dataset. 
+test_results = predict(my_model, test_data)%>%bind_cols(test_data%>%select(price))
+test_results
+```
+
+```{r}
+# Here we are testing our data set with trained data set.
+# Here We train our model with train dataset the 60% of dataset. 
+train_result = predict(my_model, trained_data)%>%bind_cols(trained_data%>%select(price))
+train_result
+```
+
+```{r}
+#Evaluate the model with testing and training partitions using one of the covered evaluation criteria. Which partition yields a better result. Why do you think that is the case?  this is solved below :
+
+
+#This is the RSQ and RMSE value for Test Data set
+rsq(test_results, truth = price, estimate = .pred )
+rmse(test_results, truth = price, estimate = .pred )
+
+# The RSQ is 0.503 and RMSE is 255470.1 for test data set.
+```
+
+```{r}
+#This is the RSQ and RMSE value for Trained Data set
+rsq(train_result, truth = price, estimate = .pred )
+rmse(train_result, truth = price, estimate = .pred )
+# The RSQ is 0.5135774	 and RMSE is 258235.6	 for trained data set.
+```
+
+```{r}
+# As professor said  R-squared (higher is better )
+# RMSE Root Mean Squared Error (RMSE) (lower is better)
+
+#While comparing the RSQ of the testing data set model to Trained data set model the RSQ is higher for the testing model which means the testing model is quite accurate comparing to the trained model because of the following reasons:
+# 1- The RSQ is not better of testing model because the testing data set is not used in training the model so its new so that's why its doesn't gives the better results.
+# 2- The RMSE is better of testing model because the testing data set is not used in training the model so its new so that's why its gives the better results.
+
+```
+
+```{r}
+#Split the data by 85/15 and repeat the model fitting and evaluation. Did the results get better? Briefly summarize your observations. Is been solved here.
+# Here we are Splitting the data set in two parts one will be for Training data set and other will be for Testing purpose.
+# The proportion of dividing the data set into two parts is 85 by 15 85% data set will be for training and 15% data set will be for testing.
+# 1- Split the data by 85/15  is solved here
+set.seed(1234)
+House_Pricing_datasplit_new=initial_split(House_pricing, prop=.85)
+test_data_new = testing(House_Pricing_datasplit_new)
+trained_data_new = training(House_Pricing_datasplit_new)
+count(trained_data_new)
+count(test_data_new)
+trained_data_new%>%head()
+test_data_new%>%head()
+```
+
+```{r}
+#Here we are training the model with our training data set which is our 85% of our actual data set.
+# Fit a linear model with the training data is solved here.
+my_new_model<-linear_reg()%>%
+              set_engine('lm')%>%
+              fit(price~ ., data = trained_data_new)
+my_new_model
+```
+
+```{r}
+# Here we are testing our data set with test data set.
+# Here We train our model with test dataset the 15% of dataset. 
+test_new_results = predict(my_new_model, test_data_new)%>%bind_cols(test_data_new%>%select(price))
+test_new_results
+```
+
+```{r}
+# Here we are testing our data set with trained data set.
+# Here We train our model with train dataset the 85% of dataset. 
+train_new_result = predict(my_new_model, trained_data_new)%>%bind_cols(trained_data_new%>%select(price))
+train_new_result
+```
+
+```{r}
+#Split the data by 85/15 and repeat the model fitting and evaluation. Did the results get better? Briefly summarize your observations.   this is solved below :
+
+#This is the RSQ and RMSE value for Test Data set
+rsq(test_new_results, truth = price, estimate = .pred )
+rmse(test_new_results, truth = price, estimate = .pred )
+# The RSQ is 0.515625	 and RMSE is 263662.1	 for test data set.
+```
+
+```{r}
+#This is the RSQ and RMSE value for Trained Data set
+rsq(train_new_result, truth = price, estimate = .pred )
+rmse(train_new_result, truth = price, estimate = .pred )
+# The RSQ is 0.5084727	 and RMSE is 255971.3	 for trained data set.
+```
+
+```{r}
+# As professor said  R-squared (higher is better )
+# RMSE Root Mean Squared Error (RMSE) (lower is better)
+
+# While comparing the RSQ of the testing data set model to Trained data set model the RSQ is higher for the testing model which means the testing model is quite accurate comparing to the trained model because of the following reasons:
+# 1- The RSQ is better of testing model because the testing data set is not used in training the model so its new so that's why its gives the better results.
+# 2- The RMSE is better of testing model because the testing data set is not used in training the model so its new so that's why its gives the better results.
+
+
+#Hence the RSQ of the new model in which we have 85% of dataset to train is better than the old model because we have large amount of dataset to train the model so the model will give more accuracy.
+```
+
+
+
+```{r}
+ggplot(data = train_new_result,
+       mapping = aes(x = .pred, y = price)) +
+  geom_point(color = '#006EA1', alpha = 0.7) +
+  geom_abline(intercept = 0, slope = 1, color = 'orange') +
+  labs(title = 'Linear Regression Results - House Pricing',
+       x = 'Predicted price',
+       y = 'Actual Price')
+```
+```{r}
+ggplot(data = test_new_results,
+       mapping = aes(x = .pred, y = price)) +
+  geom_point(color = '#006EA1', alpha = 0.7) +
+  geom_abline(intercept = 0, slope = 1, color = 'orange') +
+  labs(title = 'Linear Regression Results - House Pricing',
+       x = 'Predicted price',
+       y = 'Actual Price')
+```
+
+Now we fit our linear regression model to the baked training data.
+
+
+```{r}
+lm_model <- linear_reg() %>% 
+            set_engine('lm') %>% # adds lm implementation of linear regression
+            set_mode('regression')
+
+# View object properties
+lm_model
+```
+```{r}
+homes_lm_fit <- lm_model %>% 
+                fit(price ~ ., data = trained_data)
+```
+
+
+Finally, we use `vip()` on our trained linear regression model. It appears that square footage and location are the most importance predictor variables.
+
+
+```{r}
+vip(homes_lm_fit)
+```
+
+
+```{r}
+lm_fit <- lm_model %>% 
+          fit(price ~ ., data = trained_data)
+
+# View lm_fit properties
+lm_fit
+```
+
+
+
+### Exploring Training Results
+
+As mentioned in the first R tutorial, most model objects in `R` are stored as specialized lists.
+
+The `lm_fit` object is list that contains all of the information about how our model was trained as well as the detailed results. Let's use the `names()` function to print the named objects that are stored within `lm_fit`.
+
+The important objects are `fit` and `preproc`. These contain the trained model and preprocessing steps (if any are used), respectively. 
+
+
+```{r}
+names(lm_fit)
+```
+
+
+
+To print a summary of our model, we can extract `fit` from `lm_fit` and pass it to the `summary()` function. We can explore the estimated coefficients, F-statistics, p-values, residual standard error (also known as RMSE) and R2 value.
+
+However, this feature is best for visually exploring our results on the training data since the results are returned as a data frame.
+
+
+
+```{r}
+summary(lm_fit$fit)
+```
+
+
+
+
+We can use the `plot()` function to obtain diagnostic plots for our trained regression model. Again, we must first extract the `fit` object from `lm_fit` and then pass it into `plot()`. These plots provide a check for the main assumptions of the linear regression model.
+
+
+
+```{r fig.width = 10, fig.height = 10}
+par(mfrow=c(2,2)) # plot all 4 plots in one
+
+plot(lm_fit$fit, 
+     pch = 16,    # optional parameters to make points blue
+     col = '#006EA1')
+
+```
